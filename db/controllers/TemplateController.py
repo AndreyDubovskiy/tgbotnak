@@ -28,6 +28,7 @@ class Controller:
             tmp = class_model()
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, class_model, id):

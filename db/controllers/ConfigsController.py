@@ -32,6 +32,7 @@ class ConfigsController(Controller):
             tmp = ConfigModel(name, value, group, binary_data)
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, id):

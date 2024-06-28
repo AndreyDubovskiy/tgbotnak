@@ -34,6 +34,7 @@ class ProxysController(Controller):
             tmp = ProxyModel(type_proxy, ip, port, login, password)
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, id):

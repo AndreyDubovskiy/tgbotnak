@@ -30,6 +30,7 @@ class GroupwordssController(Controller):
             tmp = GroupwordsModel(name)
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, id):

@@ -33,6 +33,7 @@ class WordsController(Controller):
             tmp.group = group
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, id):

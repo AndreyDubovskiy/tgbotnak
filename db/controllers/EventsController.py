@@ -38,6 +38,7 @@ class EventsController(Controller):
             tmp = EventModel(acc_id, name_type, tg_id, tg_id_group)
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, id):

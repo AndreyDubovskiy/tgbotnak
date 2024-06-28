@@ -38,6 +38,7 @@ class AccsController(Controller):
             tmp = AccModel(name, session_name, api_id, api_hash, phone, is_active, password, proxy_id)
             session.add(tmp)
             session.commit()
+            session.refresh(tmp)
         return tmp
 
     def delete(self, id):

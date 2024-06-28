@@ -3,11 +3,17 @@ from services.forChat.UserState import UserState
 from services.forChat.Response import Response
 import config_controller
 
+from telethon import TelegramClient
+from telethon.errors import SessionPasswordNeededError
+from telethon.errors.rpcerrorlist import PeerFloodError, UserPrivacyRestrictedError, FloodWaitError, UserDeletedError, UserInvalidError, UserDeactivatedError, UsernameInvalidError
+
 class AccListState(UserState):
     async def start_msg(self):
         self.edit = None
         self.acc_count = 0
         self.list_acc_info = []
+        self.current_session_name = None
+        self.current_session = None
         return Response(text="Список акаунтів ("+str(self.acc_count)+"): ", buttons=markups.generate_cancel())
 
     async def next_msg(self, message: str):
@@ -38,6 +44,12 @@ class AccListState(UserState):
             self.edit = "code_acc"
             return Response("Введіть код, який надіслали у форматі 1-2-3-4-5\n("+self.list_acc_info[0]["phone"]+")", buttons=markups.generate_cancel())
         elif self.edit == "code_acc":
+            if self.list_acc_info[0].get("api_id", None):
+                pass
+            elif self.list_acc_info[0].get("password", None):
+                pass
+            else:
+                pass
 
 
     async def next_btn_clk(self, data_btn: str):
