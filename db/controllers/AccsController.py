@@ -14,7 +14,7 @@ class AccsController(Controller):
             res: List[AccModel] = session.scalars(query).all()
         return res
 
-    def get_by(self, id = None, name = None, session_name = None, offset = None, limit = None, is_active = None):
+    def get_by(self, id = None, name = None, session_name = None, offset = None, limit = None, is_active = None, phone = None):
         with Session(self.engine) as session:
             query = select(AccModel)
             if id != None:
@@ -25,6 +25,8 @@ class AccsController(Controller):
                 query = query.where(AccModel.session_name == session_name)
             if is_active != None:
                 query = query.where(AccModel.is_active == is_active)
+            if phone != None:
+                query = query.where(AccModel.phone == phone)
             if offset != None:
                 query = query.offset(offset)
             if limit != None:
@@ -33,7 +35,7 @@ class AccsController(Controller):
             res: List[AccModel] = session.scalars(query).all()
         return res
 
-    def create(self, name: str, session_name: str, api_id: str, api_hash: str, phone:str, password:str = None, is_active:bool = False, proxy_id: int = None):
+    def create(self, name: str, session_name: str, phone:str, password:str = None, is_active:bool = False, proxy_id: int = None,  api_id: str = None, api_hash: str = None):
         with Session(self.engine) as session:
             tmp = AccModel(name, session_name, api_id, api_hash, phone, is_active, password, proxy_id)
             session.add(tmp)

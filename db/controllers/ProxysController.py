@@ -44,3 +44,15 @@ class ProxysController(Controller):
             session.delete(tmp)
             session.commit()
         return tmp
+
+    def get_sorted_by_accs_count(self):
+        with Session(self.engine) as session:
+            subquery = select(
+                ProxyModel.id,
+                func.count(ProxyModel.accs).label('accs_count')
+            ).join(ProxyModel.accs).group_by(ProxyModel.id).subquery()
+
+            query = select(ProxyModel).join(subquery, ProxyModel.id == subquery.c.id).order_by(subquery.c.accs_count.desc())
+
+            res: List[ProxyModel] = session.scalars(query).all()
+        return res

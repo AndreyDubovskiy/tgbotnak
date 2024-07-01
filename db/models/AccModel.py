@@ -7,8 +7,8 @@ class AccModel(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
     session_name: Mapped[str] = mapped_column(String(255))
-    api_id: Mapped[str] = mapped_column(String(255))
-    api_hash: Mapped[str] = mapped_column(String(255))
+    api_id: Mapped[str] = mapped_column(String(255), default="24209092")
+    api_hash: Mapped[str] = mapped_column(String(255), default="822ed15f01ee35ae8a50d750d3e8451d")
 
     password: Mapped[str] = mapped_column(String(255), nullable=True)
     phone: Mapped[str] = mapped_column(String(255))

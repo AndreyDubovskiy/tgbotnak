@@ -43,6 +43,7 @@ class Controller:
         with Session(self.engine) as session:
             session.add(obj_model)
             session.commit()
+            session.refresh(obj_model)
         return obj_model
 
     def save_all(self, obj_models):

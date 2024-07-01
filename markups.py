@@ -17,12 +17,21 @@ def generate_ready_exit():
     markup.add(types.InlineKeyboardButton(text="❌Відмінити❌", callback_data="/cancel"))
     return markup
 
-def generate_list_acc(accs: List[AccModel]):
+def generate_delete_cancel():
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(types.InlineKeyboardButton(text="🗑Видалити🗑", callback_data="/delete"))
+    markup.add(types.InlineKeyboardButton(text="❌Відмінити❌", callback_data="/cancel"))
+    return markup
+def generate_list_acc(accs: List[AccModel], page = False):
     markup = types.InlineKeyboardMarkup(row_width=2)
     for i in accs:
         markup.add(types.InlineKeyboardButton(text=i.name+"["+i.phone+"]", callback_data=i.phone))
+    if page:
+        markup.add(types.InlineKeyboardButton(text="➡️️", callback_data="/next"))
+        markup.add(types.InlineKeyboardButton(text="⬅️", callback_data="/back"))
     markup.add(types.InlineKeyboardButton(text="❇️Додати❇️", callback_data="/add"))
     markup.add(types.InlineKeyboardButton(text="❌Відмінити❌", callback_data="/cancel"))
+    return markup
 
 def generate_cancel():
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -31,9 +40,7 @@ def generate_cancel():
 
 def generate_markup_menu():
     markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(types.InlineKeyboardButton(text="Список постів", callback_data="/postlist"))
-    markup.add(types.InlineKeyboardButton(text="Змінити вітальний текст", callback_data="/change_start_text"))
-    markup.add(types.InlineKeyboardButton(text="Список початкових посилань", callback_data="/links"))
+    markup.add(types.InlineKeyboardButton(text="Список акаунтів", callback_data="/accs"))
 
     markup.add(types.InlineKeyboardButton(text="Змінити пароль адміна", callback_data="/passwordadmin"))
 

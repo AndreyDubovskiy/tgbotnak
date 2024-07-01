@@ -10,7 +10,7 @@ import os
 
 
 
-tokkey = '6338019607:AAGprZFmi9nT7GZqIWnbRQly8vs1A2jquqU'
+tokkey = '6884392040:AAFoWQzgOUCQjK1icKy28AAqRIkn_bHB_mY'
 
 #tokkey = os.environ.get('BOT_TOKEN')
 
