@@ -8,18 +8,22 @@ class AccSessionList:
         self.ses_list = {} #{"name_session": {"session": obj; "count": int}}
         self.accs_controller = AccsController()
 
+        self.path_sessions = "saved/sessions/"
+
     async def start_session(self, phone: str):
+
+        print("Start session", phone)
         tmp = self.accs_controller.get_by(phone=phone, is_active=True)
         if len(tmp) == 0:
             return False
         acc = tmp[0]
         if acc.proxy_id == None:
-            self.ses_list[phone] = {"session": TelegramClient(session=acc.session_name,
+            self.ses_list[phone] = {"session": TelegramClient(session=self.path_sessions+acc.session_name,
                                                              api_id=acc.api_id,
                                                              api_hash=acc.api_hash),
                                    "count": 0}
         else:
-            self.ses_list[phone] = {"session": TelegramClient(session=acc.session_name,
+            self.ses_list[phone] = {"session": TelegramClient(session=self.path_sessions+acc.session_name,
                                                              api_id=acc.api_id,
                                                              api_hash=acc.api_hash,
                                                              proxy=(

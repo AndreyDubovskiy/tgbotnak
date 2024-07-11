@@ -41,6 +41,7 @@ def generate_cancel():
 def generate_markup_menu():
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(types.InlineKeyboardButton(text="Список акаунтів", callback_data="/accs"))
+    markup.add(types.InlineKeyboardButton(text="Підписки", callback_data="/sub"))
 
     markup.add(types.InlineKeyboardButton(text="Змінити пароль адміна", callback_data="/passwordadmin"))
 

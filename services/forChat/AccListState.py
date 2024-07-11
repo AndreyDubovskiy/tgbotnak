@@ -78,7 +78,9 @@ class AccListState(UserState):
             except Exception as ex:
                 return Response("Сталася помилка!\n\n"+str(ex), redirect="/menu")
             finally:
-                if (await self.current_session.is_user_authorized()):
+                tmp_bool = await self.current_session.is_user_authorized()
+                print("ADD is_user_authorized", tmp_bool)
+                if (tmp_bool):
                     self.current_acc_model.is_active = True
                     self.current_acc_model = self.accs_controller.save(self.current_acc_model)
                     self.list_acc_info.pop(0)

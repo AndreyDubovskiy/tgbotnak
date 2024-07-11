@@ -5,6 +5,7 @@ from services.forChat.LogState import LogState
 from services.forChat.MenuState import MenuState
 from services.forChat.ChangeAdminState import ChangeAdminState
 from services.forChat.AccListState import AccListState
+from services.forChat.SubscribeAccState import SubscribeAccState
 
 class BuilderState:
     def __init__(self, bot: AsyncTeleBot):
@@ -16,5 +17,6 @@ class BuilderState:
             "/log": LogState,
             "/passwordadmin": ChangeAdminState,
             "/accs": AccListState,
+            "/sub": SubscribeAccState,
         }
         return clssses[data_txt](user_id, user_chat_id, bot, user_name)
