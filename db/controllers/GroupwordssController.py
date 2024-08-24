@@ -11,18 +11,22 @@ class GroupwordssController(Controller):
         with Session(self.engine) as session:
             query = select(GroupwordsModel)
             query = query.options(joinedload(GroupwordsModel.words))
-            res: List[GroupwordsModel] = session.scalars(query).all()
+            res: List[GroupwordsModel] = session.scalars(query).unique().all()
         return res
 
-    def get_by(self, id = None, name = None):
+    def get_by(self, id = None, name = None, offset = None, limit = None):
         with Session(self.engine) as session:
             query = select(GroupwordsModel)
             if id != None:
                 query = query.where(GroupwordsModel.id == id)
             if name != None:
                 query = query.where(GroupwordsModel.name == name)
+            if limit != None:
+                query = query.limit(limit)
+            if offset != None:
+                query = query.offset(offset)
             query = query.options(joinedload(GroupwordsModel.words))
-            res: List[GroupwordsModel] = session.scalars(query).all()
+            res: List[GroupwordsModel] = session.scalars(query).unique().all()
         return res
 
     def create(self, name: str):

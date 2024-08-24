@@ -11,7 +11,6 @@ class AccSessionList:
         self.path_sessions = "saved/sessions/"
 
     async def start_session(self, phone: str):
-
         print("Start session", phone)
         tmp = self.accs_controller.get_by(phone=phone, is_active=True)
         if len(tmp) == 0:

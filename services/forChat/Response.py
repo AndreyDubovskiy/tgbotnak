@@ -2,7 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 
 class Response:
-    def __init__(self, text: str = None, documents: list = None, photos: list = None, videos: list = None, buttons: types.InlineKeyboardMarkup = None, is_end: bool = False, redirect: str = None):
+    def __init__(self, text: str = None, documents: list = None, photos: list = None, videos: list = None, buttons: types.InlineKeyboardMarkup = None, is_end: bool = False, redirect: str = None, async_end: bool = None):
         self.text = text
         self.documents = documents
         self.photos = photos
@@ -10,6 +10,7 @@ class Response:
         self.buttons = buttons
         self.is_end = is_end
         self.redirect = redirect
+        self.async_end = async_end
 
     async def send(self, user_chat_id: str, bot: AsyncTeleBot):
         if self.text is not None:

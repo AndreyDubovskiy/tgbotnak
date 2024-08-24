@@ -11,10 +11,10 @@ class ProxysController(Controller):
         with Session(self.engine) as session:
             query = select(ProxyModel)
             query = query.options(joinedload(ProxyModel.accs))
-            res: List[ProxyModel] = session.scalars(query).all()
+            res: List[ProxyModel] = session.scalars(query).unique().all()
         return res
 
-    def get_by(self, id = None, type_proxy = None, ip = None, port = None):
+    def get_by(self, id = None, type_proxy = None, ip = None, port = None, limit = None, offset = None):
         with Session(self.engine) as session:
             query = select(ProxyModel)
             if id != None:
@@ -25,8 +25,12 @@ class ProxysController(Controller):
                 query = query.where(ProxyModel.ip == ip)
             if port != None:
                 query = query.where(ProxyModel.port == port)
+            if offset != None:
+                query = query.offset(offset)
+            if limit != None:
+                query = query.limit(limit)
             query = query.options(joinedload(ProxyModel.accs))
-            res: List[ProxyModel] = session.scalars(query).all()
+            res: List[ProxyModel] = session.scalars(query).unique().all()
         return res
 
     def create(self, type_proxy: int, ip: str, port: int, login: str, password: str):
@@ -54,5 +58,5 @@ class ProxysController(Controller):
 
             query = select(ProxyModel).join(subquery, ProxyModel.id == subquery.c.id).order_by(subquery.c.accs_count.desc())
 
-            res: List[ProxyModel] = session.scalars(query).all()
+            res: List[ProxyModel] = session.scalars(query).unique().all()
         return res

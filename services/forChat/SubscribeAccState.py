@@ -1,3 +1,6 @@
+import asyncio
+import random
+
 import markups
 from services.forChat.UserState import UserState
 from services.forChat.Response import Response
@@ -14,6 +17,9 @@ from services.AccSessionList import session_list
 
 class SubscribeAccState(UserState):
     async def start_msg(self):
+        self.RANGE_COOLDOWN = 20 # in proc
+        self.cooldown = 5
+
         self.accs_controller = AccsController()
         self.event_controller = EventsController()
 
@@ -37,7 +43,7 @@ class SubscribeAccState(UserState):
             self.count_in_url_accs = self.count_acc - len(self.event_controller.get_by(name_type="join_"+self.current_url))
             self.edit = "count"
             return Response(text=f"Для даного каналу для вступу є {self.count_in_url_accs} акаунтів.\n"
-                                 f"Уведіть скільки вам потрібно підписок:",
+                                 f"Уведіть скільки вам потрібно підписок та через пробіл якщо потрібно затримку у секундах:",
                             buttons=markups.generate_cancel())
         elif self.edit == "count":
             try:
@@ -49,44 +55,85 @@ class SubscribeAccState(UserState):
                                      f"Ви впевненні, що ввели все коректно?\n"
                                      f"Спробуйте ще раз:",
                                 buttons=markups.generate_cancel())
-            await self.work()
-            return Response(
-                text=f"Закінчено!",
-                redirect="/menu")
+            return Response(async_end=True, redirect="/menu")
+
+
+    async def async_work(self):
+        await self.work()
 
     async def work(self):
         current_count = 0
+        error_count = 0
         msg = await self.bot.send_message(chat_id=self.user_chat_id,
-                                          text=f"[Статус]\n"
-                                               f"{current_count} з {self.need_count}")
+                                          text=f"[Статус Підписки]\n"
+                                               f"[{self.current_url}]\n"
+                                               f"Готово: {current_count} з {self.need_count}\n"
+                                               f"Помилок: {error_count}")
         accs = self.accs_controller.get_by(is_active=True)
         for i in accs:
-            tmp = self.event_controller.get_by(name_type="join_"+self.current_url,
-                                               acc_id=i.id)
-            if len(tmp) > 0:
-                continue
             try:
                 tmp_session: TelegramClient = await session_list.get_session(i.phone)
             except:
                 continue
-            print("is_connected", tmp_session.is_connected())
-            print("is_user_authorized", await tmp_session.is_user_authorized())
-            print("start", self.current_url)
-            await tmp_session(JoinChannelRequest(self.current_url))
-            entity = await tmp_session.get_entity(self.current_url.split("/")[-1])
-            print(entity)
-            current_count += 1
-            self.event_controller.create(acc_id=i.id,
-                                         name_type="join_"+self.current_url,
-                                         tg_id = str(entity.id),
-                                         tg_id_group=str(entity.id))
-            await self.bot.edit_message_text(text=f"[Статус]\n"
-                                               f"{current_count} з {self.need_count}",
-                                             chat_id=self.user_chat_id,
-                                             message_id=msg.id)
-            await session_list.give_away_session(i.phone)
-            if current_count >= self.need_count:
-                break
+            try:
+                tmp = self.event_controller.get_by(name_type="join_"+self.current_url,
+                                                   acc_id=i.id)
+                if len(tmp) > 0:
+                    continue
+
+                print("is_connected", tmp_session.is_connected())
+                print("is_user_authorized", await tmp_session.is_user_authorized())
+                print("start", self.current_url)
+                await tmp_session(JoinChannelRequest(self.current_url))
+                entity = await tmp_session.get_entity(self.current_url.split("/")[-1])
+                print(entity)
+                current_count += 1
+                self.event_controller.create(acc_id=i.id,
+                                             name_type="join_"+self.current_url,
+                                             tg_id = str(entity.id),
+                                             tg_id_group=str(entity.id))
+                await self.bot.edit_message_text(text=f"[Статус Підписки]\n"
+                                               f"[{self.current_url}]\n"
+                                               f"Готово: {current_count} з {self.need_count}\n"
+                                               f"Помилок: {error_count}",
+                                                 chat_id=self.user_chat_id,
+                                                 message_id=msg.id)
+                if current_count >= self.need_count:
+                    break
+                else:
+                    await asyncio.sleep(random.uniform((self.cooldown*(1.0-(self.RANGE_COOLDOWN/100))),
+                                                       ((self.cooldown*(1.0+(self.RANGE_COOLDOWN/100))))))
+            except ValueError:
+                try:
+                    invite_code: str = self.current_url.split("/")[-1].replace("+", "")
+                    print("INVITE", invite_code)
+                    await tmp_session(ImportChatInviteRequest(invite_code))
+                    entity = await tmp_session(CheckChatInviteRequest(invite_code))
+                    print("TYPOENTYTY", entity)
+                    current_count +=1
+                    self.event_controller.create(acc_id=i.id,
+                                                 name_type="join_" + self.current_url,
+                                                 tg_id=str(entity.chat.id),
+                                                 tg_id_group=str(entity.chat.id))
+                    await self.bot.edit_message_text(text=f"[Статус Підписки]\n"
+                                               f"[{self.current_url}]\n"
+                                               f"Готово: {current_count} з {self.need_count}\n"
+                                               f"Помилок: {error_count}",
+                                                     chat_id=self.user_chat_id,
+                                                     message_id=msg.id)
+                except:
+                    error_count +=  1
+            except Exception as ex:
+                error_count += 1
+            finally:
+                await session_list.give_away_session(i.phone)
+        await self.bot.edit_message_text(text=f"[Статус Підписки]\n"
+                                               f"[{self.current_url}]\n"
+                                              f"[Закінчено]\n"
+                                               f"Готово: {current_count} з {self.need_count}\n"
+                                               f"Помилок: {error_count}",
+                                         chat_id=self.user_chat_id,
+                                         message_id=msg.id)
 
 
 

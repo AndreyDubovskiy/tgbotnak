@@ -13,7 +13,7 @@ class EventsController(Controller):
             res: List[EventModel] = session.scalars(query).all()
         return res
 
-    def get_by(self,id = None, acc_id = None, name_type = None, tg_id = None, tg_id_group = None, start_date = None, end_date = None):
+    def get_by(self,id = None, acc_id = None, name_type = None, tg_id = None, tg_id_group = None, start_date = None, end_date = None, name_type_value = None):
         with Session(self.engine) as session:
             query = select(EventModel)
             if id != None:
@@ -23,13 +23,15 @@ class EventsController(Controller):
             if name_type != None:
                 query = query.where(EventModel.name_type == name_type)
             if tg_id != None:
-                query = query.where(EventModel.port == tg_id)
+                query = query.where(EventModel.tg_id == tg_id)
             if tg_id_group != None:
                 query = query.where(EventModel.tg_id_group == tg_id_group)
             if start_date != None:
                 query = query.where(EventModel.time_create >= start_date)
             if end_date != None:
                 query = query.where(EventModel.time_create <= end_date)
+            if name_type_value != None:
+                query = query.where(EventModel.name_type.startswith(name_type_value))
             res: List[EventModel] = session.scalars(query).all()
         return res
 

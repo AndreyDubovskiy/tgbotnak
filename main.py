@@ -41,20 +41,22 @@ async def callback(call: types.CallbackQuery):
     if state_list.get(id_list, None) != None:
         state: UserState = state_list[id_list]
         res: Response = await state.next_btn_clk(text)
-        await chek_response(chat_id, user_id, id_list, res, user_name)
+        await chek_response(chat_id, user_id, id_list, res, user_name, call.message)
     else:
         builder = BuilderState(bot)
         if not text.startswith("/geturl"):
-            state = builder.create_state(text, user_id, chat_id, bot, user_name)
+            state = builder.create_state(text, user_id, chat_id, bot, user_name, call.message)
         else:
-            state = builder.create_state("/geturl", user_id, chat_id, bot, user_name)
+            state = builder.create_state("/geturl", user_id, chat_id, bot, user_name, call.message)
         state_list[id_list] = state
         if not text.startswith("/geturl"):
+            state.message_obj = call.message
             res: Response = await state.start_msg()
-            await chek_response(chat_id, user_id, id_list, res, user_name)
+            await chek_response(chat_id, user_id, id_list, res, user_name, call.message)
         else:
+            state.message_obj = call.message
             res: Response = await state.next_btn_clk_message(text, call.message)
-            await chek_response(chat_id, user_id, id_list, res, user_name)
+            await chek_response(chat_id, user_id, id_list, res, user_name, call.message)
     if not text.startswith("/geturl"):
         await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
 
@@ -75,8 +77,9 @@ async def comand(message: types.Message):
         return
     else:
         state: UserState = state_list[id_list]
+        state.message_obj = message
         res: Response = await state.next_msg_photo_and_video(message)
-        await chek_response(user_chat_id, user_id, id_list, res, user_name)
+        await chek_response(user_chat_id, user_id, id_list, res, user_name, message)
 
 
 @bot.message_handler(func=lambda message: True, content_types=["document"])
@@ -92,20 +95,27 @@ async def comand(message: types.Message):
         return
     else:
         state: UserState = state_list[id_list]
+        state.message_obj = message
         res: Response = await state.next_msg_document(message)
-        await chek_response(user_chat_id, user_id, id_list, res, user_name)
+        await chek_response(user_chat_id, user_id, id_list, res, user_name, message)
 
-async def chek_response(user_chat_id, user_id, id_list, res: Response = None, user_name: str = None):
+async def chek_response(user_chat_id, user_id, id_list, res: Response = None, user_name: str = None, message: types.Message = None):
+    tmp_state = state_list.get(id_list)
+    task_as = None
     if res != None:
         await res.send(user_chat_id, bot)
         if res.is_end:
             state_list.pop(id_list)
+        if res.async_end:
+            task_as = asyncio.create_task(tmp_state.async_work())
         if res.redirect != None:
             builder = BuilderState(bot)
-            state = builder.create_state(res.redirect, user_id, user_chat_id, bot, user_name)
+            state = builder.create_state(res.redirect, user_id, user_chat_id, bot, user_name, message)
             state_list[id_list] = state
             res: Response = await state.start_msg()
-            await chek_response(user_chat_id, user_id, id_list, res, user_name)
+            await chek_response(user_chat_id, user_id, id_list, res, user_name, message)
+        if res.async_end:
+            await task_as
     else:
         state_list.pop(id_list)
 async def handle_message(message: types.Message):
@@ -119,14 +129,16 @@ async def handle_message(message: types.Message):
     text = message.text
     if state_list.get(id_list, None) == None:
         builder = BuilderState(bot)
-        state = builder.create_state(text, user_id, user_chat_id, bot, user_name)
+        state = builder.create_state(text, user_id, user_chat_id, bot, user_name, message)
         state_list[id_list] = state
         res: Response = await state.start_msg()
-        await chek_response(user_chat_id, user_id, id_list, res, user_name)
+        await chek_response(user_chat_id, user_id, id_list, res, user_name, message)
     else:
         state: UserState = state_list[id_list]
+        print("msg", message)
+        state.message_obj = message
         res: Response = await state.next_msg(text)
-        await chek_response(user_chat_id, user_id, id_list, res, user_name)
+        await chek_response(user_chat_id, user_id, id_list, res, user_name, message)
 
 config_controller.preload_config()
 

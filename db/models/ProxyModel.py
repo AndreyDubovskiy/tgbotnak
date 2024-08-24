@@ -8,8 +8,8 @@ class ProxyModel(BaseModel):
     type_proxy: Mapped[int] = mapped_column(Integer())
     ip: Mapped[str] = mapped_column(String(255))
     port: Mapped[int] = mapped_column(Integer())
-    login: Mapped[str] = mapped_column(String(255))
-    password: Mapped[str] = mapped_column(String(255))
+    login: Mapped[str] = mapped_column(String(255), nullable=True)
+    password: Mapped[str] = mapped_column(String(255), nullable=True)
 
     accs = relationship("AccModel", back_populates="proxy")
 
