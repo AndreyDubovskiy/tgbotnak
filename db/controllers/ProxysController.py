@@ -5,6 +5,7 @@ from typing import List
 from sqlalchemy.orm import joinedload
 from db.controllers.TemplateController import Controller
 from db.models.ProxyModel import ProxyModel
+from db.models.AccModel import AccModel
 
 class ProxysController(Controller):
     def get_all(self):
@@ -51,12 +52,18 @@ class ProxysController(Controller):
 
     def get_sorted_by_accs_count(self):
         with Session(self.engine) as session:
-            subquery = select(
-                ProxyModel.id,
-                func.count(ProxyModel.accs).label('accs_count')
-            ).join(ProxyModel.accs).group_by(ProxyModel.id).subquery()
+            subquery = (
+                select(
+                    AccModel.proxy_id,
+                    func.count(AccModel.id).label('accs_count')
+                ).group_by(AccModel.proxy_id)
+            ).subquery()
 
-            query = select(ProxyModel).join(subquery, ProxyModel.id == subquery.c.id).order_by(subquery.c.accs_count.desc())
+            query = (
+                select(ProxyModel)
+                .outerjoin(subquery, ProxyModel.id == subquery.c.proxy_id)
+                .order_by(subquery.c.accs_count.desc().nullslast())
+            )
 
-            res: List[ProxyModel] = session.scalars(query).unique().all()
+            res: List[ProxyModel] = session.scalars(query).all()
         return res

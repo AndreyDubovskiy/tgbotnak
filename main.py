@@ -9,10 +9,7 @@ from services.forChat.Response import Response
 import os
 
 
-
-tokkey = '6884392040:AAFoWQzgOUCQjK1icKy28AAqRIkn_bHB_mY'
-
-#tokkey = os.environ.get('BOT_TOKEN')
+tokkey = os.environ.get('BOT_TOKEN')
 
 bot = AsyncTeleBot(tokkey)
 
@@ -22,6 +19,30 @@ state_list = {}
 async def off(message):
     await bot.send_message(chat_id=message.chat.id, text="Вимикаю...")
     sys.exit()
+
+@bot.message_handler(commands=['del_log'])
+async def off(message):
+    tmp = os.listdir("./logger/log")
+    for i in tmp:
+        os.remove(f"./logger/log/{i}")
+    await bot.send_message(chat_id=message.chat.id, text="Deleted logs")
+
+
+@bot.message_handler(commands=['get_log'])
+async def off(message):
+    filename = message.text.split("/get_log ")[-1]
+    with open("./logger/log/"+filename, "rb") as file:
+        await bot.send_document(chat_id=message.chat.id, document=file)
+
+@bot.message_handler(commands=['list_log'])
+async def off(message):
+    tmp = os.listdir("./logger/log")
+    with open("testlog.txt", "w") as file:
+        for i in tmp:
+            file.write(i+"\n")
+
+    with open("testlog.txt", "rb") as file:
+        await bot.send_document(chat_id=message.chat.id, document=file)
 
 
 @bot.message_handler(commands=['passwordadmin','help', 'passwordmoder', 'helpadmin', 'log', 'textafter', 'start', 'texthelp', 'texthello', 'textcontact','menu'])

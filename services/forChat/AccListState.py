@@ -15,6 +15,7 @@ from db.controllers.ProxysController import ProxysController
 
 class AccListState(UserState):
     async def start_msg(self):
+
         self.path_sessions = "saved/sessions/"
 
         self.accs_controller = AccsController()
@@ -97,9 +98,13 @@ class AccListState(UserState):
 
     async def get_proxy(self):
         proxys = self.proxy_controller.get_sorted_by_accs_count()
+        print("LEN PROXY", len(proxys))
         if len(proxys) == 0:
             return None
         else:
+            print("PROXY_id", proxys[-1].id)
+            print("PROXY_ip", proxys[-1].ip)
+            print("PROXY_port", proxys[-1].port)
             return proxys[-1]
     async def send_code(self):
         if self.list_acc_info[0].get("api_id", None):
@@ -108,6 +113,7 @@ class AccListState(UserState):
                 proxy = proxy.id
             else:
                 proxy = None
+            print("PROXY SET", proxy)
             acc_model = self.accs_controller.create(name=self.list_acc_info[0]['name'],
                                                     session_name="asd",
                                                     api_id=self.list_acc_info[0]['api_id'],
@@ -119,6 +125,7 @@ class AccListState(UserState):
             acc_model = self.accs_controller.save(acc_model)
 
             if proxy:
+                print("start1")
                 self.current_proxy = self.proxy_controller.get_by(id=proxy)[0]
                 proxy = (
                           self.current_proxy.type_proxy,
@@ -159,6 +166,7 @@ class AccListState(UserState):
             acc_model = self.accs_controller.save(acc_model)
 
             if proxy:
+                print("start2")
                 self.current_proxy = self.proxy_controller.get_by(id=proxy)[0]
                 proxy = (
                     self.current_proxy.type_proxy,
@@ -198,6 +206,7 @@ class AccListState(UserState):
             acc_model = self.accs_controller.save(acc_model)
 
             if proxy:
+                print("start3")
                 self.current_proxy = self.proxy_controller.get_by(id=proxy)[0]
                 proxy = (
                     self.current_proxy.type_proxy,
@@ -213,6 +222,7 @@ class AccListState(UserState):
                                                       api_hash=acc_model.api_hash,
                                                       proxy=proxy
                                                       )
+                print("pr", proxy)
             else:
                 self.current_proxy = None
                 self.current_session_name = acc_model.session_name

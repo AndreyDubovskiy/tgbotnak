@@ -24,6 +24,9 @@ from datetime import datetime, timedelta
 
 class CommentState(UserState):
     async def start_msg(self):
+        self.logger.filename = self.__class__.__name__
+        self.logger.autosave = True
+
         self.acc_controller = AccsController()
         self.events_controller = EventsController()
         self.group_controller = GroupwordssController()
@@ -46,7 +49,7 @@ class CommentState(UserState):
 
 
         self.edit = "post"
-        return Response(text="Перишліть сюди пост який потрібно продивитись:")
+        return Response(text="Перишліть сюди пост під яким потрібно залишити коментарі:", buttons=markups.generate_cancel())
 
     async def next_msg(self, message: str):
         if self.edit == "post":
@@ -56,7 +59,7 @@ class CommentState(UserState):
             print("Post ", self.post_id)
             self.edit = "count"
             self.accs = self.events_controller.get_by(tg_id=self.group_id.replace("-100", ""), name_type_value="join_")
-            return Response(text=f"Доступно для цього поста {len(self.accs)} акаунтів\nНапишіть кількість коментарів та затримку (якщо потрібно) через пробіл:")
+            return Response(text=f"Доступно для цього поста {len(self.accs)} акаунтів\nНапишіть кількість коментарів та затримку (якщо потрібно) через пробіл:", buttons=markups.generate_cancel())
         elif self.edit == "count":
             try:
                 if message.count(" ") == 0:
@@ -65,7 +68,7 @@ class CommentState(UserState):
                     self.count = int(message.split(" ")[0])
                     self.COOLDOWN = float(message.split(" ")[1])
                 else:
-                    return Response("Ви впевнені що ввели все коректно? Спробуйте ще раз:")
+                    return Response("Ви впевнені що ввели все коректно? Спробуйте ще раз:", buttons=markups.generate_cancel())
                 self.edit = "group"
                 return Response("Виберіть групу коментарів:",
                                     buttons=markups.generate_list_groupswords(
@@ -76,7 +79,7 @@ class CommentState(UserState):
                                     )
                                 )
             except:
-                return Response("Ви впевнені що ввели все коректно? Спробуйте ще раз:")
+                return Response("Ви впевнені що ввели все коректно? Спробуйте ще раз:", buttons=markups.generate_cancel())
 
 
     async def next_btn_clk(self, data_btn: str):
@@ -114,6 +117,7 @@ class CommentState(UserState):
             
 
     async def async_work(self):
+        self.logger.log("WORK", f"start work", f"accs_len {len(self.accs)}")
         count = 0
         error_count = 0
 
@@ -137,18 +141,21 @@ class CommentState(UserState):
                     continue
 
                 acc = self.acc_controller.get_by(id=i.acc_id)[0]
+                self.logger.log("WORK", acc.phone, acc.name)
                 try:
                     ses: TelegramClient = await session_list.get_session(acc.phone)
-                except:
+                except Exception as ex:
                     error_count += 1
+                    self.logger.log("ERROR", acc.phone, ex)
                     continue
-            except:
+            except Exception as ex:
                 error_count += 1
+                self.logger.log("ERROR", ex)
                 continue
             try:
 
                 chanell_entity = await ses.get_entity(int(self.group_id.replace("-100", "")))
-                print("chanellEntity", chanell_entity)
+                self.logger.log("WORK", acc.phone, "chanellEntity", chanell_entity)
 
                 text = random.choice(self.group_comments.words)
 
@@ -159,6 +166,7 @@ class CommentState(UserState):
                 )
 
                 count+=1
+                self.logger.log("WORK", acc.phone, "COUNT++")
                 await self.bot.edit_message_text(text=f"[Статус Коментарі]\n"
                                                f"[{self.group_id}]\n"
                                                f"Готово: {count} з {self.count}\n"
@@ -183,8 +191,9 @@ class CommentState(UserState):
                                                        ((self.COOLDOWN * (1.0 + (self.RANGE_COOLDOWN / 100))))))
             except Exception as ex:
                 error_count += 1
-                print(ex)
+                self.logger.log("ERROR", acc.phone, ex)
             finally:
+                self.logger.log("END", "END")
                 await session_list.give_away_session(acc.phone)
         await self.bot.edit_message_text(text=f"[Статус Коментарі]\n"
                                                f"[{self.group_id}]\n"

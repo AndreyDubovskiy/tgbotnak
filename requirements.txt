@@ -1,3 +1,5 @@
 pyTelegramBotAPI
 aiohttp
 SQLAlchemy
+telethon
+python-socks
