@@ -5,5 +5,6 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN mkdir /app/logger/log
+RUN mkdir /app/saved
 RUN mkdir /app/saved/sessions
 CMD ["python", "main.py"]
